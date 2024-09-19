@@ -1,0 +1,23 @@
+{
+  "name": "tonproof",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "@ton/crypto": "^3.3.0",
+    "@ton/ton": "^15.0.0",
+    "@types/node": "^22.5.5",
+    "int64-buffer": "^1.0.1",
+    "ton": "^13.9.0",
+    "ton-crypto": "^3.2.0",
+    "ton-wallet-utils": "^2.79.0",
+    "ts-node": "^10.9.2",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1"
+  }
+}
