@@ -12,10 +12,10 @@
     "@ton/crypto": "^3.3.0",
     "@ton/ton": "^15.0.0",
     "@types/node": "^22.5.5",
+    "axios": "^1.7.7",
+    "axios-socks5-agent": "^1.0.5",
     "int64-buffer": "^1.0.1",
-    "ton": "^13.9.0",
-    "ton-crypto": "^3.2.0",
-    "ton-wallet-utils": "^2.79.0",
+    "socks-proxy-agent": "^8.0.4",
     "ts-node": "^10.9.2",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1"

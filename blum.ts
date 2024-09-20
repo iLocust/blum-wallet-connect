@@ -17,13 +17,7 @@ class BlumService {
     "accept-language": "en,en-US;q=0.9",
   };
 
-  private wallet?: Wallet;
-
-  constructor(private token?: string) {}
-
-  setWallet(wallet: Wallet) {
-    this.wallet = wallet;
-  }
+  constructor(private token?: string, private wallet?: Wallet) {}
 
   private getAuthHeaders() {
     return this.token
@@ -42,7 +36,7 @@ class BlumService {
         headers: this.baseHeaders,
         body: data,
       });
-      console.debug(`Token request response: ${response.status}`);
+      // console.debug(`Token request response: ${response.status}`);
 
       if (response.ok) {
         const responseJson = await response.json();
@@ -76,7 +70,7 @@ class BlumService {
       ),
     });
 
-    console.debug(`Connecting wallet with address: ${this.wallet.address}`);
+    // console.debug(`Connecting wallet with address: ${this.wallet.address}`);
 
     try {
       const response = await fetch(url, {
@@ -94,8 +88,8 @@ class BlumService {
   }
 
   async disconnectWallet(): Promise<boolean> {
-    if (!this.token) {
-      console.error("Token not provided.");
+    if (!this.wallet || !this.token) {
+      console.error("Wallet or token not provided.");
       return false;
     }
 
