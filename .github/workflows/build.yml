@@ -48,8 +48,8 @@ jobs:
       - name: Upload Artifact for Windows
         uses: actions/upload-artifact@v3
         with:
-          name: blum-windows
-          path: ./blum-windows
+          name: blum-windows.exe
+          path: ./blum-windows.exe
 
   release:
     name: Create Release
@@ -71,7 +71,7 @@ jobs:
       - name: Download Windows Artifact
         uses: actions/download-artifact@v3
         with:
-          name: blum-windows
+          name: blum-windows.exe
           path: ./releases
 
       - name: Create GitHub Release
@@ -83,4 +83,4 @@ jobs:
           assets: |
             ./releases/blum-arm64
             ./releases/blum-linux
-            ./releases/blum-windows
+            ./releases/blum-windows.exe
