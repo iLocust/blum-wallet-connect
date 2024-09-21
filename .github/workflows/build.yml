@@ -2,8 +2,6 @@ name: Build and Release Artifacts
 
 on:
   push:
-    branches:
-      - main
     tags:
       - "v*"
 
@@ -44,7 +42,6 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install
       - run: bun build --compile --target=bun-windows-x64-modern --minify ./index.ts --outfile blum-windows
-      - run: dir
       - name: Upload Artifact for Windows
         uses: actions/upload-artifact@v3
         with:
