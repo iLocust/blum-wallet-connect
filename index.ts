@@ -24,27 +24,6 @@ interface WalletStatus {
   isConnected: boolean;
 }
 
-function generateWallet(): Promise<wlt.Wallet> {
-  return new Promise((resolve, reject) => {
-    exec('python ton_gen.py single', (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error running ton_gen.py: ${error.message}`);
-        reject(error);
-        return;
-      }
-      if (stderr) {
-        console.error(`ton_gen.py stderr: ${stderr}`);
-      }
-      try {
-        const wallet: wlt.Wallet = JSON.parse(stdout);
-        resolve(wallet);
-      } catch (e) {
-        reject(new Error("Failed to parse wallet data"));
-      }
-    });
-  });
-}
-
 function checkWalletStatus(queryIds: string[], connectedAccounts: ConnectedAccount[]): WalletStatus[] {
   return queryIds.map((queryId, index) => ({
     queryId,
@@ -96,7 +75,7 @@ async function processWallets(action: string, queryIds: string[], connectedAccou
       let wallet: wlt.Wallet;
 
       if (action === "1") {
-        wallet = await generateWallet();
+        wallet = await wlt.generateWalletInfo();
       } else {
         const existingAccount = connectedAccounts.find(account => account.queryId === queryId);
         if (existingAccount) {
@@ -110,10 +89,11 @@ async function processWallets(action: string, queryIds: string[], connectedAccou
       console.log(`QueryID : ${index + 1}`);
       console.log("-".repeat(30));
 
-      const token = await new BlumService().getNewToken(queryId);
+      const blumService = new BlumService();
+      const token = await blumService.getNewToken(queryId);
 
       if (token) {
-        const blum = new BlumService(token, wallet);
+        const blum = blumService.init(token, wallet);
 
         if (action === "1") {
           const connectResponse = await blum.connectWallet();

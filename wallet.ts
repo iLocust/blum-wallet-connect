@@ -1,11 +1,8 @@
 import nacl from 'tweetnacl';
 import * as naclUtils from 'tweetnacl-util';
 import { Int64LE } from 'int64-buffer';
-import { createHash } from 'bun:crypto';
-
-const CONNECT_ITEM_ERROR_CODES = {
-  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-};
+import { mnemonicToWalletKey, newSecureWords, sha256_sync, type KeyPair } from '@ton/crypto';
+import { WalletContractV4, type Cell } from '@ton/ton';
 
 interface Wallet {
   mnemonics: string;
@@ -35,19 +32,40 @@ interface TonProofItemReply {
 }
 
 function getTimeSec(): number {
-  return Math.floor(Date.now() / 1000); // Convert milliseconds to seconds
+  return Math.floor(Date.now() / 1000);
 }
 
 function getDomainFromURL(url: string): string {
   try {
     const parsedUrl = new URL(url);
-    return parsedUrl.hostname; // Extracts just the domain name (hostname)
+    return parsedUrl.hostname;
   } catch (e) {
     throw new Error(`Invalid URL: ${url}`);
   }
 }
 
-// Convert hex string to Uint8Array
+async function generateWalletInfo() : Promise<Wallet> {
+  const walletMnemonics = await newSecureWords(24);
+  const keyPair: KeyPair = await mnemonicToWalletKey(walletMnemonics);
+  const { publicKey, secretKey } = keyPair;
+
+  const wallet = WalletContractV4.create({workchain: 0, publicKey: publicKey });
+  const base64Boc = wallet.init.data.toBoc().toString('base64');
+  const creationDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const walletInfo = {
+      mnemonics: walletMnemonics.join(' '),
+      address: wallet.address.toRawString(),
+      address_bounceable_url_safe: wallet.address.toString({urlSafe: true, bounceable: true, testOnly: false}),
+      public_key: Buffer.from(publicKey).toString('hex'),
+      private_key: Buffer.from(secretKey).toString('hex'),
+      base64_boc: base64Boc,
+      creation_date: creationDate
+  };
+
+  return walletInfo;
+}
+
+
 function hexToUint8Array(hex: string): Uint8Array {
   if (hex.length % 2 !== 0) {
     throw new Error('Invalid hex string');
@@ -93,8 +111,7 @@ function createTonProofItem(
       Buffer.from(payload),
     ]);
 
-    const message = createHash('sha256').update(messageBuffer).digest();
-
+    const message = sha256_sync(messageBuffer);
     const bufferToSign = Buffer.concat([
       Buffer.from('ffff', 'hex'),
       Buffer.from('ton-connect'),
@@ -102,7 +119,7 @@ function createTonProofItem(
     ]);
 
     const signed = nacl.sign.detached(
-      createHash('sha256').update(bufferToSign).digest(),
+      sha256_sync(bufferToSign),
       secretKey,
     );
 
@@ -121,7 +138,7 @@ function createTonProofItem(
       },
     };
   } catch (e: any) {
-    console.error(`CreateToonProof: ${e.message}`)
+    console.error(`CreateToonProof: ${e.message} | ${e.stack}`)
     return null;
   }
 }
@@ -131,17 +148,18 @@ function generateTonProof(
   wallet: Wallet
 ) : TonProofItemReply | null {
   let payload:string = new Date().getTime().toString();
+  let privateKey:Uint8Array = hexToUint8Array(wallet.private_key)
 
   return createTonProofItem(
     manifest,
     wallet.address,
-    hexToUint8Array(wallet.private_key),
+    privateKey,
     payload
   )
 }
 
 export {
-  generateTonProof,getTimeSec,
+  generateWalletInfo, generateTonProof, getTimeSec,
   createTonProofItem, hexToUint8Array
 };  export type { Wallet, };
 

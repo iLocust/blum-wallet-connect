@@ -2,6 +2,8 @@ import { fetch } from "bun";
 import { generateTonProof, type Wallet } from "./wallet";
 
 class BlumService {
+  private token:string | undefined;
+  private wallet:Wallet | undefined;
   private baseHeaders = {
     accept: "application/json, text/plain, */*",
     "user-agent":
@@ -17,7 +19,12 @@ class BlumService {
     "accept-language": "en,en-US;q=0.9",
   };
 
-  constructor(private token?: string, private wallet?: Wallet) {}
+
+  init(token: string, wallet: Wallet) : BlumService {
+    this.token = token;
+    this.wallet = wallet;
+    return this;
+  }
 
   private getAuthHeaders() {
     return this.token
